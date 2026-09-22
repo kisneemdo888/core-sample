@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core Sample — Master's Revision</title>
+<meta name="description" content="Flashcards and self-graded quizzes for Agricultural Biotechnology Master's coursework.">
+<meta name="color-scheme" content="light dark">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#F3F4EF; --surface:#FFFFFF; --surface-2:#EAEDE2; --surface-3:#DFE3D4;
+    --ink:#1E2118; --ink-soft:#5B6553; --border:#D9DCCE;
+    --accent:#4F6B3E; --accent-strong:#3B5230; --on-accent:#FFFFFF;
+    --good:#3F7D4A; --good-bg:#E4F0E2; --bad:#B3492F; --bad-bg:#F6E4DE;
+    --c-ethics:#6E5A41; --c-fertility:#A97A34; --c-organic:#5C7A4A; --c-biotech:#2F6459;
+    --c-ethics-bg:#EFEAE1; --c-fertility-bg:#F5EBDA; --c-organic-bg:#E8EFE2; --c-biotech-bg:#E1EEEA;
+    --shadow:0 1px 2px rgba(30,33,24,.06), 0 6px 20px rgba(30,33,24,.06);
+    --font-d:'Fraunces',Georgia,serif; --font-b:'Work Sans',system-ui,-apple-system,sans-serif; --font-m:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#14160F; --surface:#1C1F15; --surface-2:#24271A; --surface-3:#2E321F;
+      --ink:#ECEAD9; --ink-soft:#AEB59C; --border:#343824;
+      --accent:#8FB374; --accent-strong:#A9C98F; --on-accent:#14160F;
+      --good:#7FCB86; --good-bg:#20301F; --bad:#E4816A; --bad-bg:#3A241E;
+      --c-ethics:#C0A57D; --c-fertility:#DCAE64; --c-organic:#9AC17E; --c-biotech:#79C6B6;
+      --c-ethics-bg:#26241B; --c-fertility-bg:#2A2418; --c-organic-bg:#20281B; --c-biotech-bg:#1B2925;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14160F; --surface:#1C1F15; --surface-2:#24271A; --surface-3:#2E321F;
+    --ink:#ECEAD9; --ink-soft:#AEB59C; --border:#343824;
+    --accent:#8FB374; --accent-strong:#A9C98F; --on-accent:#14160F;
+    --good:#7FCB86; --good-bg:#20301F; --bad:#E4816A; --bad-bg:#3A241E;
+    --c-ethics:#C0A57D; --c-fertility:#DCAE64; --c-organic:#9AC17E; --c-biotech:#79C6B6;
+    --c-ethics-bg:#26241B; --c-fertility-bg:#2A2418; --c-organic-bg:#20281B; --c-biotech-bg:#1B2925;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.4);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{ margin:0; }
+  body{ background:var(--bg); color:var(--ink); font-family:var(--font-b); }
+  #app{ max-width:980px; margin:0 auto; padding-inline:20px; padding-block:28px 60px; display:flex; flex-direction:column; gap:22px; }
+
+  .topbar{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; }
+  .eyebrow{ font-family:var(--font-m); font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-soft); }
+  .brand h1{ font-family:var(--font-d); font-weight:700; font-size:clamp(28px,5vw,36px); margin:2px 0 0; text-wrap:balance; }
+  .brand p{ margin:4px 0 0; color:var(--ink-soft); font-size:14px; }
+  .overall{ text-align:right; font-family:var(--font-m); }
+  .overall .num{ font-size:26px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .overall .lbl{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.07em; }
+
+  .rail{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  @media (max-width:640px){ .rail{ grid-template-columns:repeat(2,1fr); } }
+  .stratum{ border:1px solid var(--border); border-radius:10px; padding:13px 14px; background:var(--surface); cursor:pointer; text-align:left; font-family:var(--font-b); position:relative; overflow:hidden; transition:transform .12s ease; }
+  .stratum:hover{ transform:translateY(-1px); }
+  .stratum::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--bar); }
+  .stratum .code{ font-family:var(--font-m); font-size:10.5px; color:var(--ink-soft); letter-spacing:.03em; }
+  .stratum .name{ font-size:13.5px; font-weight:600; margin-top:4px; line-height:1.3; }
+  .stratum .meta{ margin-top:9px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--ink-soft); font-family:var(--font-m); }
+  .stratum.active{ border-color:var(--bar); box-shadow:0 0 0 1px var(--bar) inset; background:var(--tint); }
+  .stratum .ring{ width:26px; height:26px; border-radius:50%; background:conic-gradient(var(--bar) calc(var(--pct)*1%), var(--surface-3) 0); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .stratum .ring::after{ content:""; width:19px; height:19px; border-radius:50%; background:var(--surface); }
+
+  .panel{ background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; }
+  .panel-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; padding:22px 24px 18px; border-bottom:1px solid var(--border); }
+  .panel-head .code{ font-family:var(--font-m); font-size:11px; color:var(--bar,var(--ink-soft)); letter-spacing:.05em; }
+  .panel-head h2{ font-family:var(--font-d); font-size:clamp(20px,3vw,25px); margin:3px 0 2px; text-wrap:balance; }
+  .panel-head .en{ color:var(--ink-soft); font-size:13.5px; margin:0; }
+
+  .mode-toggle{ display:flex; gap:4px; background:var(--surface-2); border-radius:9px; padding:3px; height:fit-content; }
+  .mode-btn{ font-family:var(--font-b); font-size:13px; font-weight:500; padding:7px 14px; border-radius:7px; border:none; background:transparent; color:var(--ink-soft); cursor:pointer; }
+  .mode-btn.active{ background:var(--surface); color:var(--ink); box-shadow:var(--shadow); }
+
+  .view{ padding:26px 24px 28px; }
+
+  .card-stage{ display:flex; align-items:center; gap:12px; }
+  .nav-arrow{ font-family:var(--font-b); font-size:20px; width:38px; height:38px; flex-shrink:0; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--ink-soft); cursor:pointer; }
+  .nav-arrow:hover{ color:var(--ink); border-color:var(--ink-soft); }
+  .flashcard{ flex:1; min-height:180px; perspective:1200px; cursor:pointer; }
+  .flashcard .flip-inner{ position:relative; width:100%; height:100%; min-height:180px; transition:transform .45s cubic-bezier(.4,.2,.2,1); transform-style:preserve-3d; }
+  .flashcard.flipped .flip-inner{ transform:rotateY(180deg); }
+  .face{ position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:13px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px; background:var(--tint,var(--surface-2)); }
+  .face.back{ transform:rotateY(180deg); background:var(--surface-2); }
+  .face-label{ font-family:var(--font-m); font-size:10px; letter-spacing:.1em; color:var(--ink-soft); position:absolute; top:12px; left:14px; }
+  .term{ font-family:var(--font-d); font-size:clamp(22px,3.4vw,28px); font-weight:600; text-wrap:balance; }
+  .term-en{ font-family:var(--font-d); font-size:18px; font-weight:600; color:var(--bar,var(--accent)); margin-bottom:6px; }
+  .def{ font-size:14.5px; line-height:1.55; color:var(--ink-soft); max-width:46ch; }
+  .hint{ font-family:var(--font-m); font-size:10.5px; color:var(--ink-soft); margin-top:10px; opacity:.7; }
+
+  .card-controls{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:18px; flex-wrap:wrap; }
+  .progress-text{ font-family:var(--font-m); font-size:12px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+  .ghost-btn{ font-family:var(--font-b); font-size:13px; font-weight:500; padding:8px 13px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--ink); cursor:pointer; }
+  .ghost-btn:hover{ border-color:var(--ink-soft); }
+  .rate-btns{ display:flex; gap:8px; }
+  .rate-btn{ font-family:var(--font-b); font-size:13px; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--border); cursor:pointer; background:var(--surface); color:var(--ink); }
+  .rate-btn.known{ background:var(--good-bg); color:var(--good); border-color:var(--good-bg); }
+  .rate-btn.unsure{ color:var(--ink-soft); }
+  .rate-btn.known:hover{ filter:brightness(0.96); }
+
+  .quiz-progress{ display:flex; gap:6px; margin-bottom:20px; }
+  .dot{ height:5px; flex:1; border-radius:3px; background:var(--surface-3); }
+  .dot.done-correct{ background:var(--good); }
+  .dot.done-wrong{ background:var(--bad); }
+  .dot.current{ background:var(--bar,var(--accent)); }
+
+  .q-eyebrow{ font-family:var(--font-m); font-size:11px; color:var(--ink-soft); letter-spacing:.06em; }
+  .q-text{ font-family:var(--font-d); font-size:clamp(18px,2.6vw,21px); font-weight:600; margin:6px 0 18px; text-wrap:balance; }
+  .options{ display:flex; flex-direction:column; gap:9px; }
+  .opt{ text-align:left; font-family:var(--font-b); font-size:14.5px; padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; display:flex; gap:10px; align-items:flex-start; }
+  .opt:hover:not(:disabled){ border-color:var(--ink-soft); }
+  .opt .letter{ font-family:var(--font-m); font-size:12px; color:var(--ink-soft); width:16px; flex-shrink:0; }
+  .opt.correct{ background:var(--good-bg); border-color:var(--good); }
+  .opt.correct .letter{ color:var(--good); }
+  .opt.wrong{ background:var(--bad-bg); border-color:var(--bad); }
+  .opt.wrong .letter{ color:var(--bad); }
+  .opt:disabled{ cursor:default; }
+
+  .explain{ margin-top:16px; padding:14px 16px; border-radius:10px; background:var(--surface-2); font-size:13.5px; line-height:1.55; color:var(--ink-soft); display:none; }
+  .explain.show{ display:block; }
+  .explain b{ color:var(--ink); }
+  .quiz-next{ margin-top:18px; font-family:var(--font-b); font-weight:600; font-size:14px; padding:10px 18px; border-radius:9px; border:none; background:var(--accent); color:var(--on-accent); cursor:pointer; display:none; }
+  .quiz-next.show{ display:inline-block; }
+
+  .quiz-done{ text-align:center; padding:24px 0 10px; }
+  .quiz-done .score{ font-family:var(--font-d); font-size:44px; font-weight:700; }
+  .quiz-done .score-lbl{ font-family:var(--font-m); font-size:12px; color:var(--ink-soft); letter-spacing:.05em; text-transform:uppercase; margin-top:4px; }
+  .quiz-done p{ color:var(--ink-soft); font-size:13.5px; max-width:40ch; margin:14px auto 20px; }
+  .retry-btn{ font-family:var(--font-b); font-weight:600; font-size:14px; padding:10px 20px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--ink); cursor:pointer; }
+
+  footer{ text-align:center; font-family:var(--font-m); font-size:11px; color:var(--ink-soft); padding-bottom:10px; }
+
+  button{ font-family:inherit; }
+  button:focus-visible, .opt:focus-visible, .stratum:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion:reduce){ .flip-inner{ transition:none; } }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="eyebrow">Master's Revision · Agricultural Biotechnology</span>
+      <h1>Core Sample</h1>
+      <p>Flashcards and self-tests for your taught courses this term.</p>
+    </div>
+    <div class="overall" id="overallStats"></div>
+  </header>
+
+  <nav class="rail" id="rail"></nav>
+
+  <main class="panel">
+    <div class="panel-head">
+      <div>
+        <span class="code" id="courseCode"></span>
+        <h2 id="courseNameTR"></h2>
+        <p class="en" id="courseNameEN"></p>
+      </div>
+      <div class="mode-toggle" role="tablist">
+        <button class="mode-btn active" data-mode="cards" role="tab">Flashcards</button>
+        <button class="mode-btn" data-mode="quiz" role="tab">Quiz</button>
+      </div>
+    </div>
+
+    <section id="cardsView" class="view">
+      <div class="card-stage">
+        <button class="nav-arrow" id="prevCard" aria-label="Previous card">‹</button>
+        <div class="flashcard" id="flashcard">
+          <div class="flip-inner">
+            <div class="face front">
+              <span class="face-label">TR</span>
+              <p class="term" id="cardTermTR"></p>
+              <span class="hint">tap to reveal</span>
+            </div>
+            <div class="face back">
+              <span class="face-label">EN</span>
+              <p class="term-en" id="cardTermEN"></p>
+              <p class="def" id="cardDef"></p>
+            </div>
+          </div>
+        </div>
+        <button class="nav-arrow" id="nextCard" aria-label="Next card">›</button>
+      </div>
+      <div class="card-controls">
+        <button class="ghost-btn" id="shuffleBtn">Shuffle</button>
+        <span class="progress-text" id="cardProgress"></span>
+        <div class="rate-btns">
+          <button class="rate-btn unsure" id="markUnsure">Still learning</button>
+          <button class="rate-btn known" id="markKnown">Know it</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="quizView" class="view" hidden>
+      <div class="quiz-progress" id="quizProgress"></div>
+      <div id="quizBody"></div>
+    </section>
+  </main>
+
+  <footer>Progress is saved in this browser only.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var COURSES = [
+    {
+      id:"ethics", code:"BB362218523 · TB102-2026", bar:"var(--c-ethics)", tint:"var(--c-ethics-bg)",
+      nameTR:"Bilimsel Araştırma Teknikleri İle Araştırma ve Yayın Etiği",
+      nameEN:"Research Techniques & Publication Ethics",
+      cards:[
+        {tr:"Literatür Taraması",en:"Literature review",def:"A systematic examination of existing research on a topic, used to identify gaps and situate a new study."},
+        {tr:"Araştırma Hipotezi",en:"Research hypothesis",def:"A proposed, testable explanation for a phenomenon, stated before data collection."},
+        {tr:"İntihal",en:"Plagiarism",def:"Presenting someone else's words, data, or ideas as your own without attribution."},
+        {tr:"Hakem Değerlendirmesi",en:"Peer review",def:"Independent evaluation of a manuscript by experts in the field before publication."},
+        {tr:"Araştırma Deseni",en:"Research design",def:"The overall strategy for integrating a study's components in a coherent, logical way."},
+        {tr:"Yazarlık Kriterleri",en:"Authorship criteria",def:"Standards (e.g. ICMJE) defining who has contributed enough to be listed as an author."},
+        {tr:"Veri Uydurma",en:"Data fabrication",def:"Inventing data or results that were never actually collected."},
+        {tr:"Veri Çarpıtma",en:"Data falsification",def:"Manipulating real research materials or data so results are misrepresented."},
+        {tr:"Atıf",en:"Citation",def:"A formal acknowledgment of a source whose words or ideas were used."},
+        {tr:"Etki Faktörü",en:"Impact factor",def:"A metric reflecting how often a journal's articles are cited on average."},
+        {tr:"Etik Kurul",en:"Research ethics committee",def:"A body that reviews study proposals for compliance with ethical standards before approval."},
+        {tr:"Mükerrer Yayın",en:"Duplicate publication",def:"Publishing substantially the same work in more than one venue without disclosure."}
+      ],
+      quiz:[
+        {q:"What is the primary purpose of a literature review?",opts:["To collect raw data","To identify gaps in existing knowledge and situate new research","To recruit study participants","To write the conclusion"],a:1,ex:"A literature review maps what is already known so a new study can position itself against real gaps, not assumptions."},
+        {q:"Which of the following is a form of research misconduct?",opts:["Peer review","Data fabrication","Citing prior work","Hypothesis testing"],a:1,ex:"Fabrication — inventing data that was never collected — is one of the core categories of research misconduct, alongside falsification and plagiarism."},
+        {q:"What distinguishes a research hypothesis from a theory?",opts:["A hypothesis is untestable","A theory is a well-substantiated explanation backed by extensive evidence; a hypothesis is a proposed, testable explanation","They are the same thing","A hypothesis requires no evidence at all"],a:1,ex:"A hypothesis is a starting point to be tested; a theory has already accumulated substantial supporting evidence."},
+        {q:"Under most authorship guidelines (e.g. ICMJE), what disqualifies someone from being listed as an author?",opts:["Contributing to data analysis","Only providing funding or general supervision, with no intellectual contribution","Drafting part of the manuscript","Approving the final version"],a:1,ex:"Funding or oversight alone is usually acknowledged, not credited as authorship — authorship requires substantive intellectual contribution."},
+        {q:"What is 'duplicate publication'?",opts:["Publishing a paper with negative results","Submitting substantially the same paper to more than one journal without disclosure","Citing your own earlier work","Publishing open access"],a:1,ex:"Duplicate publication misrepresents the body of literature and is treated as misconduct even without direct data manipulation."},
+        {q:"Why is peer review considered important before publication?",opts:["It guarantees a paper will never be retracted","It provides an independent check on quality and validity before results reach the public record","It removes the need for revisions","It replaces the literature review"],a:1,ex:"Peer review is a quality filter, not a guarantee — it reduces but does not eliminate the risk of flawed or misleading results."},
+        {q:"What is the key difference between data fabrication and data falsification?",opts:["There is no difference","Fabrication invents data that doesn't exist; falsification manipulates real data or results","Falsification is legal, fabrication isn't","Fabrication only applies to qualitative research"],a:1,ex:"Fabrication creates data from nothing; falsification distorts data that was genuinely collected."},
+        {q:"What does a high journal 'impact factor' indicate?",opts:["Strict formatting requirements","Its articles are, on average, cited relatively often","It only publishes open-access work","It requires no peer review"],a:1,ex:"Impact factor is a citation-frequency metric — it says nothing directly about a journal's editorial standards or peer-review rigor."}
+      ]
+    },
+    {
+      id:"fertility", code:"TB121-2020", bar:"var(--c-fertility)", tint:"var(--c-fertility-bg)",
+      nameTR:"Toprakta Verimlilik Analizleri",
+      nameEN:"Soil Fertility Analysis",
+      cards:[
+        {tr:"Katyon Değişim Kapasitesi (KDK)",en:"Cation exchange capacity (CEC)",def:"A soil's capacity to hold and exchange positively charged ions — a core indicator of nutrient-holding ability."},
+        {tr:"Toprak pH'ı",en:"Soil pH",def:"A measure of soil acidity or alkalinity that strongly controls how available nutrients are to roots."},
+        {tr:"Makro Besin Elementleri",en:"Macronutrients",def:"N, P, K, Ca, Mg, S — elements plants need in relatively large amounts."},
+        {tr:"Mikro Besin Elementleri",en:"Micronutrients",def:"Fe, Zn, Mn, Cu, B, Mo — elements plants need only in trace amounts, but still essential."},
+        {tr:"Toprak Verimliliği",en:"Soil fertility",def:"A soil's capacity to supply nutrients in adequate amounts and proportions for healthy plant growth."},
+        {tr:"Yarayışlı Besin Elementi",en:"Available nutrient",def:"The fraction of a nutrient in the soil that is actually in a form roots can take up — not the total content."},
+        {tr:"Toprak Bünyesi (Tekstürü)",en:"Soil texture",def:"The relative proportions of sand, silt, and clay particles in a soil."},
+        {tr:"Elektriksel İletkenlik (EC)",en:"Electrical conductivity (EC)",def:"A measure of the soluble salt concentration in a soil, used to flag salinity problems."},
+        {tr:"Baz Doygunluğu",en:"Base saturation",def:"The percentage of CEC occupied by basic cations — Ca²⁺, Mg²⁺, K⁺, Na⁺ — rather than acidic ones."},
+        {tr:"Besin Eksikliği Belirtisi",en:"Nutrient deficiency symptom",def:"A visible sign of plant stress (e.g. chlorosis) pointing to a lack of a specific nutrient."},
+        {tr:"Toprak Örnekleme",en:"Soil sampling",def:"Systematic, representative collection of soil for laboratory fertility analysis."},
+        {tr:"Kireçleme",en:"Liming",def:"Adding calcium carbonate (or similar) to an acidic soil to raise its pH."}
+      ],
+      quiz:[
+        {q:"What does Cation Exchange Capacity (CEC) primarily indicate?",opts:["Water infiltration rate","A soil's ability to retain and supply exchangeable nutrient cations","Organic matter color","Microbial species diversity"],a:1,ex:"CEC reflects how many exchangeable cations (like K⁺, Ca²⁺, Mg²⁺) a soil can hold on its charged surfaces and later release to roots."},
+        {q:"At roughly what pH range are most nutrients most available in mineral soils?",opts:["Below 4.0","Around 6.0–7.0","Above 9.5","Exactly 14.0"],a:1,ex:"Slightly acidic to neutral pH keeps most macro- and micronutrients in soluble, plant-available forms; extremes lock nutrients up chemically."},
+        {q:"Which of these is a macronutrient rather than a micronutrient?",opts:["Zinc","Boron","Potassium","Molybdenum"],a:2,ex:"Potassium (K) is one of the primary macronutrients (N-P-K); the others are needed only in trace amounts."},
+        {q:"High soil Electrical Conductivity (EC) mainly signals what?",opts:["High organic matter","High soluble salt concentration","Low pH","High CEC"],a:1,ex:"EC responds to dissolved salts in the soil solution — high EC flags a salinity risk that can restrict water uptake by roots."},
+        {q:"Why is a fertility report given as 'available nutrient' rather than 'total nutrient'?",opts:["Total content is irrelevant","Only part of the total soil nutrient pool is actually in a form roots can absorb","Labs can't measure total content","Available nutrients don't affect yield"],a:1,ex:"Much of a soil's total nutrient content is bound in unavailable forms — the available fraction is what actually matters for the current crop."},
+        {q:"What does 'base saturation' describe?",opts:["Total nitrogen content","The percentage of CEC occupied by basic cations like Ca²⁺, Mg²⁺, K⁺","Soil water-holding capacity","Percentage of sand in the texture"],a:1,ex:"A low base saturation, with acidic cations (H⁺, Al³⁺) dominating the exchange sites, is typical of strongly acidic soils."},
+        {q:"Why does consistent sampling depth and pattern matter before fertility analysis?",opts:["It doesn't matter much","Inconsistent sampling introduces variability that can misrepresent the field's real fertility status","It only matters on organic farms","Only the surface layer is ever relevant"],a:1,ex:"A biased or shallow sample can under- or overstate nutrient status across the whole field, leading to a wrong fertilizer recommendation."},
+        {q:"Liming a soil primarily addresses which problem?",opts:["Excess salinity","Low soil pH (acidity)","Nitrogen deficiency specifically","Poor drainage"],a:1,ex:"Lime neutralizes soil acidity, raising pH and freeing up nutrients that were chemically locked at low pH."}
+      ]
+    },
+    {
+      id:"organic", code:"TB125-2022", bar:"var(--c-organic)", tint:"var(--c-organic-bg)",
+      nameTR:"Toprak Organik Maddesinin Yönetimi",
+      nameEN:"Soil Organic Matter Management",
+      cards:[
+        {tr:"Toprak Organik Maddesi",en:"Soil organic matter (SOM)",def:"The organic fraction of soil built from decomposed plant and animal residues plus microbial biomass."},
+        {tr:"Humus",en:"Humus",def:"The stable, dark, resistant organic material that remains after most residues have decomposed."},
+        {tr:"C:N Oranı",en:"C:N ratio",def:"The ratio of carbon to nitrogen in organic material — a major control on how fast it decomposes."},
+        {tr:"Mineralizasyon",en:"Mineralization",def:"Microbial conversion of organic nutrients into inorganic, plant-available forms."},
+        {tr:"İmmobilizasyon",en:"Immobilization",def:"Microbial uptake of inorganic nutrients, temporarily making them unavailable to plants."},
+        {tr:"Kompostlama",en:"Composting",def:"Controlled, generally aerobic decomposition of organic waste into a stable, humus-like product."},
+        {tr:"Toprak Agregat Stabilitesi",en:"Soil aggregate stability",def:"The resistance of soil clumps to breaking apart — improved directly by organic matter content."},
+        {tr:"Karbon Tutulumu",en:"Carbon sequestration",def:"Long-term storage of carbon in soil organic matter, offsetting atmospheric CO₂."},
+        {tr:"Yeşil Gübre",en:"Green manure",def:"A cover crop grown specifically to be incorporated into the soil, adding organic matter and nutrients."},
+        {tr:"Labil Organik Madde",en:"Labile organic matter",def:"The easily decomposable, short-lived fraction of soil organic matter."},
+        {tr:"Humifikasyon",en:"Humification",def:"The process by which fresh organic residues are transformed into stable humus."},
+        {tr:"Örtü Bitkisi",en:"Cover crop",def:"A crop grown primarily to protect and improve soil rather than for harvest."}
+      ],
+      quiz:[
+        {q:"What is the general effect of a high C:N ratio material (e.g. straw, ~80:1) when added to soil?",opts:["Rapid decomposition and excess available nitrogen","Slow decomposition and temporary nitrogen immobilization by microbes","No effect on nitrogen at all","Immediate humus formation"],a:1,ex:"Microbes breaking down carbon-rich, nitrogen-poor residue pull nitrogen from the soil to build their own bodies, temporarily tying it up."},
+        {q:"What is 'mineralization' in the organic matter cycle?",opts:["Formation of soil minerals from rock","Microbial conversion of organic nutrients into inorganic, plant-available forms","Adding synthetic fertilizer","Loss of organic matter through erosion"],a:1,ex:"Mineralization releases nutrients like N, P, and S from organic matter into forms roots can directly absorb."},
+        {q:"Which practice most directly increases soil aggregate stability?",opts:["Removing all crop residues","Increasing soil organic matter content","Excessive, repeated tillage","Applying only inorganic salts"],a:1,ex:"Organic matter — especially microbial byproducts and root exudates — binds mineral particles into stable aggregates that resist erosion."},
+        {q:"What distinguishes humus from fresh organic residue?",opts:["Humus decomposes faster","Humus is a stable, dark material formed after extensive decomposition, resistant to further breakdown","Humus contains no carbon","Fresh residue is more stable"],a:1,ex:"Humus is the end product of humification — chemically stabilized and far slower to break down than the fresh material it came from."},
+        {q:"Why are cover crops or green manures used in organic matter management?",opts:["To compact the soil","To add organic matter, protect against erosion, and often fix nitrogen","To reduce microbial activity","To increase soil salinity"],a:1,ex:"Legume cover crops in particular add both biomass and fixed nitrogen while their roots hold soil in place between main crops."},
+        {q:"What is 'immobilization' of nutrients?",opts:["Permanent nutrient loss from the system","Temporary microbial uptake of inorganic nutrients, making them unavailable to plants short-term","Nutrient movement to deeper soil layers","Conversion of nutrients into gas"],a:1,ex:"Immobilized nutrients aren't lost — they're locked in microbial biomass until the microbes die and release them again (mineralization)."},
+        {q:"How does soil organic matter contribute to carbon sequestration?",opts:["It releases stored carbon rapidly","It stores carbon in relatively stable forms, reducing the amount cycling back to the atmosphere","It has no relationship to atmospheric carbon","It only affects nitrogen cycling"],a:1,ex:"Stabilized SOM (humus) can hold carbon for decades to centuries, acting as a sink rather than a source."},
+        {q:"What is composting, in organic matter management terms?",opts:["Uncontrolled anaerobic decay","A controlled, generally aerobic process converting organic waste into a stable, humus-like product","Chemical synthesis of organic matter in a lab","A method of soil sampling"],a:1,ex:"Composting deliberately manages moisture, aeration, and C:N ratio to speed stabilization into a usable soil amendment."}
+      ]
+    },
+    {
+      id:"biotech", code:"TB504", bar:"var(--c-biotech)", tint:"var(--c-biotech-bg)",
+      nameTR:"Toprak Biyoteknolojisi",
+      nameEN:"Soil Biotechnology",
+      cards:[
+        {tr:"Toprak Mikrobiyomu",en:"Soil microbiome",def:"The collective community of microorganisms — bacteria, fungi, archaea — and their genetic material in soil."},
+        {tr:"Rizosfer",en:"Rhizosphere",def:"The narrow zone of soil directly influenced by root secretions and the microbial activity they attract."},
+        {tr:"Bitki Büyümesini Teşvik Eden Rizobakteriler (PGPR)",en:"Plant growth-promoting rhizobacteria",def:"Root-associated bacteria that boost plant growth via nutrient solubilization, hormone production, or pathogen suppression."},
+        {tr:"Mikoriza",en:"Mycorrhiza",def:"A mutually beneficial symbiosis between fungi and plant roots that improves water and nutrient uptake."},
+        {tr:"Biyogübre",en:"Biofertilizer",def:"A product containing living microorganisms that enhance nutrient availability to plants."},
+        {tr:"Biyoremediasyon",en:"Bioremediation",def:"Using microorganisms to degrade or detoxify contaminants in soil or water."},
+        {tr:"Metagenomik",en:"Metagenomics",def:"Studying genetic material recovered directly from an environmental sample, capturing whole microbial communities without culturing them."},
+        {tr:"Azot Fiksasyonu",en:"Nitrogen fixation",def:"Biological conversion of atmospheric N₂ into plant-usable forms, e.g. by Rhizobium in legume nodules."},
+        {tr:"Biyolojik Mücadele Ajanı",en:"Biocontrol agent",def:"A beneficial organism applied to suppress plant pathogens or pests."},
+        {tr:"16S rRNA Dizileme",en:"16S rRNA sequencing",def:"A molecular method that reads a conserved bacterial gene to identify and classify taxa in a sample."},
+        {tr:"Toprak Enzim Aktivitesi",en:"Soil enzyme activity",def:"A measure of the microbial community's ongoing functional and biochemical activity in soil."},
+        {tr:"Kültürden Bağımsız Yöntemler",en:"Culture-independent methods",def:"Molecular techniques that study microbes directly from a sample, without needing to grow them in the lab."}
+      ],
+      quiz:[
+        {q:"Why do culture-independent methods like metagenomics matter for soil microbiome research?",opts:["Because all soil microbes are easy to culture","Because most soil microorganisms cannot be grown using standard lab culturing techniques","Because they are simply cheaper than any alternative","Because they only detect fungi"],a:1,ex:"The vast majority of environmental microbes resist standard culturing, so sequencing DNA directly from soil is the only way to see the full community."},
+        {q:"What is the main function of PGPR (plant growth-promoting rhizobacteria)?",opts:["They are always pathogenic to plants","They promote growth via mechanisms like nutrient solubilization, phytohormone production, and pathogen suppression","They only change soil pH","They convert all organic matter to CO₂"],a:1,ex:"PGPR act through several complementary mechanisms at once, which is why they're studied as both biofertilizers and biocontrol agents."},
+        {q:"What does 16S rRNA gene sequencing target, and why is it used?",opts:["A plant gene, used for crop breeding","A conserved bacterial/archaeal gene used to identify and classify taxa in a sample","A gene found only in pathogens","A fungal-only marker gene"],a:1,ex:"Because the 16S rRNA gene is present in nearly all bacteria and archaea but varies enough between species, it works as a universal identification marker."},
+        {q:"What is the defining relationship in a mycorrhizal association?",opts:["A parasitic relationship that harms the plant","A mutually beneficial symbiosis between fungi and roots that improves nutrient and water uptake","Pure competition for the same resources","No direct interaction with the plant"],a:1,ex:"The fungus extends the root's effective surface area for water/nutrient uptake in exchange for plant-produced sugars."},
+        {q:"How does biological nitrogen fixation (e.g. Rhizobium in legume nodules) benefit soil fertility?",opts:["It removes nitrogen from the ecosystem","It converts atmospheric N₂ into plant-usable forms, reducing reliance on synthetic fertilizer","It only functions in strongly acidic soils","It has no real agronomic significance"],a:1,ex:"This symbiosis is a major natural nitrogen input, which is why legumes are widely used in rotation to build soil fertility."},
+        {q:"What is the rhizosphere?",opts:["The deepest soil layer, unaffected by roots","The zone of soil directly influenced by root exudates and the microbial activity they concentrate","A synonym for bulk soil far from any root","An area with no elevated microbial density"],a:1,ex:"Root exudates (sugars, organic acids) feed and concentrate microbial activity right around the root, making the rhizosphere a microbial hotspot."},
+        {q:"In bioremediation, what role do microorganisms play?",opts:["They contaminate the soil further","They degrade or detoxify pollutants, helping restore soil health","They have no measurable effect on contaminants","They only act on inorganic pollutants"],a:1,ex:"Certain bacteria and fungi can metabolize organic pollutants (e.g. hydrocarbons) or transform heavy metals into less harmful forms."},
+        {q:"Why might soil enzyme activity be used as an indicator in soil biotechnology studies?",opts:["It has no biological relevance","It reflects the functional, metabolic activity of the soil microbial community, not just who is present","It measures only soil texture","It's unrelated to microbial processes"],a:1,ex:"Enzyme activity shows what the microbial community is actually doing (e.g. breaking down organic matter), complementing who-is-there data like 16S sequencing."}
+      ]
+    }
+  ];
+
+  var STORE_KEY = "coreSampleProgress";
+  function loadProgress(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+  function courseProgress(prog, cid){
+    if(!prog[cid]) prog[cid] = { known:[], quizBest:0, quizAttempts:0 };
+    return prog[cid];
+  }
+
+  var state = { courseIdx:0, mode:"cards", cardOrder:[], cardPos:0, quizIdx:0, quizScore:0, quizAnswered:false };
+  var progress = loadProgress();
+
+  var railEl = document.getElementById("rail");
+  var overallEl = document.getElementById("overallStats");
+  var codeEl = document.getElementById("courseCode");
+  var nameTREl = document.getElementById("courseNameTR");
+  var nameENEl = document.getElementById("courseNameEN");
+  var panelEl = document.querySelector(".panel");
+  var cardsView = document.getElementById("cardsView");
+  var quizView = document.getElementById("quizView");
+  var flashcardEl = document.getElementById("flashcard");
+  var cardTermTR = document.getElementById("cardTermTR");
+  var cardTermEN = document.getElementById("cardTermEN");
+  var cardDef = document.getElementById("cardDef");
+  var cardProgress = document.getElementById("cardProgress");
+  var quizProgressEl = document.getElementById("quizProgress");
+  var quizBodyEl = document.getElementById("quizBody");
+
+  function shuffledIdx(n){
+    var a = []; for(var i=0;i<n;i++) a.push(i);
+    for(var j=a.length-1;j>0;j--){ var k=Math.floor(Math.random()*(j+1)); var t=a[j]; a[j]=a[k]; a[k]=t; }
+    return a;
+  }
+
+  function setCourseAccent(course){
+    panelEl.style.setProperty("--bar", course.bar);
+    panelEl.style.setProperty("--tint", course.tint);
+  }
+
+  function renderRail(){
+    railEl.innerHTML = "";
+    var totalKnown=0, totalCards=0;
+    COURSES.forEach(function(course, idx){
+      var cp = courseProgress(progress, course.id);
+      var known = cp.known.length, total = course.cards.length;
+      totalKnown += known; totalCards += total;
+      var pct = total ? Math.round((known/total)*100) : 0;
+      var btn = document.createElement("button");
+      btn.className = "stratum" + (idx===state.courseIdx ? " active" : "");
+      btn.style.setProperty("--bar", course.bar);
+      btn.style.setProperty("--tint", course.tint);
+      btn.style.setProperty("--pct", pct);
+      btn.innerHTML =
+        '<div class="code">'+course.code+'</div>'+
+        '<div class="name">'+course.nameEN+'</div>'+
+        '<div class="meta"><span>'+known+'/'+total+' cards'+(cp.quizBest?' · quiz '+cp.quizBest+'/'+course.quiz.length:'')+'</span><span class="ring"></span></div>';
+      btn.addEventListener("click", function(){
+        state.courseIdx = idx; state.mode="cards"; state.cardPos=0; state.cardOrder=shuffledIdx(course.cards.length);
+        render();
+      });
+      railEl.appendChild(btn);
+    });
+    var pctOverall = totalCards ? Math.round((totalKnown/totalCards)*100) : 0;
+    overallEl.innerHTML = '<div class="num">'+pctOverall+'%</div><div class="lbl">cards known</div>';
+  }
+
+  function renderPanelHead(course){
+    codeEl.textContent = course.code;
+    nameTREl.textContent = course.nameTR;
+    nameENEl.textContent = course.nameEN;
+    setCourseAccent(course);
+    document.querySelectorAll(".mode-btn").forEach(function(b){
+      b.classList.toggle("active", b.dataset.mode === state.mode);
+    });
+    cardsView.hidden = state.mode !== "cards";
+    quizView.hidden = state.mode !== "quiz";
+  }
+
+  function renderCard(){
+    var course = COURSES[state.courseIdx];
+    if(state.cardOrder.length !== course.cards.length) state.cardOrder = shuffledIdx(course.cards.length);
+    var idx = state.cardOrder[state.cardPos];
+    var c = course.cards[idx];
+    flashcardEl.classList.remove("flipped");
+    cardTermTR.textContent = c.tr;
+    cardTermEN.textContent = c.en;
+    cardDef.textContent = c.def;
+    cardProgress.textContent = (state.cardPos+1) + " / " + course.cards.length;
+    var cp = courseProgress(progress, course.id);
+    var cardId = course.id+"-"+idx;
+    var isKnown = cp.known.indexOf(cardId) !== -1;
+    document.getElementById("markKnown").style.opacity = isKnown ? "1" : ".6";
+  }
+
+  function renderQuiz(){
+    var course = COURSES[state.courseIdx];
+    if(state.quizIdx >= course.quiz.length){
+      var pct = Math.round((state.quizScore/course.quiz.length)*100);
+      quizProgressEl.innerHTML = "";
+      quizBodyEl.innerHTML =
+        '<div class="quiz-done">'+
+          '<div class="score">'+state.quizScore+'/'+course.quiz.length+'</div>'+
+          '<div class="score-lbl">'+pct+'% correct</div>'+
+          '<p>'+(pct>=80 ? "Solid grasp of this material." : pct>=50 ? "Getting there — worth another pass on the missed ones." : "Review the flashcards for this course, then try again.")+'</p>'+
+          '<button class="retry-btn" id="retryBtn">Retry quiz</button>'+
+        '</div>';
+      var cp = courseProgress(progress, course.id);
+      if(state.quizScore > cp.quizBest) cp.quizBest = state.quizScore;
+      cp.quizAttempts++;
+      saveProgress(progress);
+      renderRail();
+      document.getElementById("retryBtn").addEventListener("click", function(){
+        state.quizIdx=0; state.quizScore=0; state.quizAnswered=false; renderQuiz();
+      });
+      return;
+    }
+    var q = course.quiz[state.quizIdx];
+    state.quizAnswered = false;
+
+    quizProgressEl.innerHTML = "";
+    course.quiz.forEach(function(_, i){
+      var d = document.createElement("div");
+      d.className = "dot" + (i===state.quizIdx ? " current" : i < state.quizIdx ? " done-correct" : "");
+      quizProgressEl.appendChild(d);
+    });
+
+    var letters = ["A","B","C","D"];
+    var optsHtml = q.opts.map(function(opt, i){
+      return '<button class="opt" data-i="'+i+'"><span class="letter">'+letters[i]+'</span><span>'+opt+'</span></button>';
+    }).join("");
+
+    quizBodyEl.innerHTML =
+      '<div class="q-eyebrow">Question '+(state.quizIdx+1)+' of '+course.quiz.length+'</div>'+
+      '<div class="q-text">'+q.q+'</div>'+
+      '<div class="options">'+optsHtml+'</div>'+
+      '<div class="explain" id="explainBox"></div>'+
+      '<button class="quiz-next" id="quizNextBtn">Next question</button>';
+
+    var optButtons = quizBodyEl.querySelectorAll(".opt");
+    optButtons.forEach(function(btn){
+      btn.addEventListener("click", function(){
+        if(state.quizAnswered) return;
+        state.quizAnswered = true;
+        var chosen = parseInt(btn.dataset.i, 10);
+        optButtons.forEach(function(b){ b.disabled = true; });
+        if(chosen === q.a){
+          btn.classList.add("correct");
+          state.quizScore++;
+        } else {
+          btn.classList.add("wrong");
+          optButtons[q.a].classList.add("correct");
+        }
+        var ex = document.getElementById("explainBox");
+        ex.innerHTML = "<b>"+(chosen===q.a?"Correct. ":"Not quite. ")+"</b>"+q.ex;
+        ex.classList.add("show");
+        var nb = document.getElementById("quizNextBtn");
+        nb.classList.add("show");
+        nb.textContent = state.quizIdx === course.quiz.length-1 ? "See results" : "Next question";
+        nb.addEventListener("click", function(){ state.quizIdx++; renderQuiz(); }, { once:true });
+      });
+    });
+  }
+
+  function render(){
+    renderRail();
+    var course = COURSES[state.courseIdx];
+    renderPanelHead(course);
+    if(state.mode === "cards"){
+      if(state.cardOrder.length !== course.cards.length){ state.cardOrder = shuffledIdx(course.cards.length); state.cardPos = 0; }
+      renderCard();
+    } else {
+      state.quizIdx = 0; state.quizScore = 0; state.quizAnswered = false;
+      renderQuiz();
+    }
+  }
+
+  document.querySelectorAll(".mode-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      state.mode = btn.dataset.mode;
+      var course = COURSES[state.courseIdx];
+      renderPanelHead(course);
+      if(state.mode === "cards"){ renderCard(); }
+      else { state.quizIdx=0; state.quizScore=0; renderQuiz(); }
+    });
+  });
+
+  flashcardEl.addEventListener("click", function(){
+    flashcardEl.classList.toggle("flipped");
+  });
+
+  document.getElementById("prevCard").addEventListener("click", function(){
+    var course = COURSES[state.courseIdx];
+    state.cardPos = (state.cardPos - 1 + course.cards.length) % course.cards.length;
+    renderCard();
+  });
+  document.getElementById("nextCard").addEventListener("click", function(){
+    var course = COURSES[state.courseIdx];
+    state.cardPos = (state.cardPos + 1) % course.cards.length;
+    renderCard();
+  });
+  document.getElementById("shuffleBtn").addEventListener("click", function(){
+    var course = COURSES[state.courseIdx];
+    state.cardOrder = shuffledIdx(course.cards.length);
+    state.cardPos = 0;
+    renderCard();
+  });
+
+  function setKnown(known){
+    var course = COURSES[state.courseIdx];
+    var idx = state.cardOrder[state.cardPos];
+    var cardId = course.id+"-"+idx;
+    var cp = courseProgress(progress, course.id);
+    var pos = cp.known.indexOf(cardId);
+    if(known && pos===-1) cp.known.push(cardId);
+    if(!known && pos!==-1) cp.known.splice(pos,1);
+    saveProgress(progress);
+    renderRail();
+    document.getElementById("nextCard").click();
+  }
+  document.getElementById("markKnown").addEventListener("click", function(){ setKnown(true); });
+  document.getElementById("markUnsure").addEventListener("click", function(){ setKnown(false); });
+
+  state.cardOrder = shuffledIdx(COURSES[0].cards.length);
+  render();
+})();
+</script>
+</body>
+</html>
